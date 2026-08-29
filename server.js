@@ -1,37 +1,70 @@
 const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const app = express();
+const { MongoClient } = require('mongodb');
+const path = require('path');
 
-// Puerto dinámico para la nube o 3000 para tu PC
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json());
 
-const DB_FILE = './database.json';
+// Lee la URL de MongoDB desde las variables de entorno de Render
+const uri = process.env.MONGODB_URI;
+let db;
 
-function leerDB() {
-    if (!fs.existsSync(DB_FILE)) {
-        return { clientes: [], tramites: [] };
+async function conectarDB() {
+    try {
+        const client = new MongoClient(uri);
+        await client.connect();
+        db = client.db('tramites_electricidad');
+        console.log("¡Conectado exitosamente a MongoDB Atlas!");
+    } catch (error) {
+        console.error("Error al conectar a MongoDB:", error);
     }
-    const data = fs.readFileSync(DB_FILE);
-    return JSON.parse(data);
 }
 
-function escribirDB(data) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
+conectarDB();
 
-app.get('/api/datos', (req, res) => {
-    const db = leerDB();
-    res.json(db);
+// Obtener datos (clientes y trámites)
+app.get('/api/datos', async (req, res) => {
+    try {
+        if (!db) return res.json({ clientes: [], tramites: [] });
+        
+        const clientesCol = db.collection('clientes');
+        const tramitesCol = db.collection('tramites');
+
+        const clientes = await clientesCol.find({}).toArray();
+        const tramites = await tramitesCol.find({}).toArray();
+
+        res.json({ clientes, tramites });
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los datos" });
+    }
 });
 
-app.post('/api/datos', (req, res) => {
-    const { clientes, tramites } = req.body;
-    escribirDB({ clientes, tramites });
-    res.json({ success: true, message: 'Datos guardados correctamente' });
+// Guardar o actualizar datos completos
+app.post('/api/datos', async (req, res) => {
+    try {
+        if (!db) return res.status(500).json({ error: "Base de datos no conectada" });
+
+        const { clientes, tramites } = req.body;
+        const clientesCol = db.collection('clientes');
+        const tramitesCol = db.collection('tramites');
+
+        // Reemplazar o actualizar la colección completa de forma segura
+        await clientesCol.deleteMany({});
+        if (clientes && clientes.length > 0) {
+            await clientesCol.insertMany(clientes);
+        }
+
+        await tramitesCol.deleteMany({});
+        if (tramites && tramites.length > 0) {
+            await tramitesCol.insertMany(tramites);
+        }
+
+        res.json({ success: true, mensaje: "Datos guardados en la nube correctamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al guardar los datos" });
+    }
 });
 
 app.listen(PORT, () => {
