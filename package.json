@@ -1,13 +1,12 @@
 {
   "name": "tramites-electrica",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sistema de gestion electrica",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "mongodb": "^6.3.0"
   }
 }
