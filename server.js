@@ -7,6 +7,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// ESTA ES LA LÍNEA NUEVA QUE INTEGRA TU PÁGINA WEB AL SERVIDOR:
+app.use(express.static(path.join(__dirname)));
+
 const uri = process.env.MONGODB_URI;
 let db;
 
