@@ -7,8 +7,13 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// ESTA ES LA LÍNEA NUEVA QUE INTEGRA TU PÁGINA WEB AL SERVIDOR:
+// Permite cargar archivos estáticos (CSS, imágenes, etc.)
 app.use(express.static(path.join(__dirname)));
+
+// Ruta principal para que abra directamente tu archivo 'gestion.html'
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'gestion.html'));
+});
 
 const uri = process.env.MONGODB_URI;
 let db;
