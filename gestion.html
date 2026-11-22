@@ -324,12 +324,15 @@
         }
 
         @media print {
+            @page {
+                margin: 0;
+            }
             aside, .top-bar, .btn, .form-group, label, select, .action-icons, .resumen-box, #seccion-desglose-mes, .aside-header, .menu-list, .sort-bar { 
                 display: none !important; 
             }
             body { 
                 background: white !important; 
-                padding: 0 !important; 
+                padding: 12mm !important; 
                 color: #000 !important;
             }
             .main-container { padding: 0 !important; }
